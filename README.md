@@ -36,34 +36,17 @@ Additionally, users can choose to run both methods at once and compare the resul
    ```bash
    git clone https://github.com/yourusername/stock-analysis-django.git
    cd stock-analysis-django
-Create and Activate a Virtual Environment:
+**Create and Activate a Virtual Environment:**
 
-bash
-Copy
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-Install the Dependencies:
 
-bash
-Copy
-pip install -r requirements.txt
-If you do not have a requirements.txt, ensure you have installed:
+  python -m venv venv
+  source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
-Django
-yfinance
-tensorflow
-scikit-learn
-pandas
-numpy
-matplotlib
-ta
-nltk
-requests
-For example, you can run:
+
 
 
 pip install django yfinance tensorflow scikit-learn pandas numpy matplotlib ta nltk requests
-Set Up Environment Variables (Optional):
+**Set Up Environment Variables (Optional):**
 
 For sentiment analysis, the application uses NewsAPI. Obtain a free API key from NewsAPI.org and set it in your environment:
 
@@ -80,10 +63,8 @@ On macOS/Linux:
 
 
 export NEWS_API_KEY=your_news_api_key
-Apply Migrations:
-
-
-python manage.py migrate
+Apply Migrations:  
+  python manage.py migrate
 Usage
 Run the Django Development Server:
 
