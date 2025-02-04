@@ -130,7 +130,8 @@ def get_news_sentiment(ticker_symbol):
             score = analyzer.polarity_scores(title)['compound']
             compound_scores.append(score)
     # Fetch additional headlines using NewsAPI.
-    NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "09c29c4e025041a4b948e9197872400d")
+    # For security, ideally load the API key from environment variables.
+    NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "add your key")
     if NEWS_API_KEY:
         additional = get_additional_headlines(ticker_symbol, NEWS_API_KEY, page_size=20)
         headlines.extend(additional)
