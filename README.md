@@ -61,8 +61,7 @@ nltk
 requests
 For example, you can run:
 
-bash
-Copy
+
 pip install django yfinance tensorflow scikit-learn pandas numpy matplotlib ta nltk requests
 Set Up Environment Variables (Optional):
 
@@ -70,29 +69,25 @@ For sentiment analysis, the application uses NewsAPI. Obtain a free API key from
 
 On Windows (Command Prompt):
 
-bash
-Copy
+
 set NEWS_API_KEY=your_news_api_key
 On Windows (PowerShell):
 
 powershell
-Copy
+
 $env:NEWS_API_KEY="your_news_api_key"
 On macOS/Linux:
 
-bash
-Copy
+
 export NEWS_API_KEY=your_news_api_key
 Apply Migrations:
 
-bash
-Copy
+
 python manage.py migrate
 Usage
 Run the Django Development Server:
 
-bash
-Copy
+
 python manage.py runserver
 Access the Application:
 
