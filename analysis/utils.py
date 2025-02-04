@@ -111,7 +111,7 @@ def get_news_sentiment(ticker_symbol):
             score = analyzer.polarity_scores(title)['compound']
             compound_scores.append(score)
     # If a NewsAPI key is provided, fetch additional headlines.
-    NEWS_API_KEY = "09c29c4e025041a4b948e9197872400d"
+    NEWS_API_KEY = "add your key"
     if NEWS_API_KEY:
         # Using the ticker symbol as query; alternatively, you could extract the company name from fundamentals.
         additional = get_additional_headlines(ticker_symbol, NEWS_API_KEY, page_size=20)
