@@ -108,38 +108,3 @@ View the Report:
 
 After submission, the application processes the request using the chosen method(s) and renders a detailed report that includes:
 
-Live data, technical indicators, and fundamental metrics.
-Support/resistance levels and suggested buy/sell prices.
-News sentiment analysis with additional headlines.
-(For LSTM) A forecast of the next day’s closing price and a simple recommendation.
-Graphs (saved to the media folder) displaying price charts, RSI, MACD, and LSTM test predictions.
-Project Structure
-bash
-Copy
-stock-analysis-django/
-├── analysis/
-│   ├── migrations/
-│   ├── templates/
-│   │   └── analysis/
-│   │       ├── index.html
-│   │       ├── report.html
-│   │       └── report_both.html
-│   ├── __init__.py
-│   ├── urls.py
-│   ├── views.py
-│   └── utils.py
-├── media/
-│   └── analysis/         # Contains generated graph images
-├── stockproject/
-│   ├── __init__.py
-│   ├── asgi.py
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── manage.py
-└── README.md
-Contributing
-Contributions are welcome! Feel free to open issues or submit pull requests with improvements.
-
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
