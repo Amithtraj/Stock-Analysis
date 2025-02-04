@@ -82,5 +82,4 @@ Both Methods
 View a list of trending symbols.
 View the Report:
 
-After submission, the application processes the request using the chosen method(s) and renders a detailed report that includes:
-
+After submission, the application processes the request using the chosen method(s) and renders a detailed report.
