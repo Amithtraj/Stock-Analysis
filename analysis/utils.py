@@ -1,11 +1,16 @@
 """
-DISCLAIMER: This module is for educational purposes only.
+DISCLAIMER: This module is provided for educational purposes only.
 It provides two methods for stock analysis:
   1. perform_analysis: A heuristic method that uses technical indicators,
-     fundamental data, and sentiment analysis (using nltk/VADER and additional headlines via NewsAPI)
-     to produce a recommendation along with support/resistance levels and suggested prices.
+     fundamental data, and news sentiment (using nltk/VADER and additional headlines via NewsAPI)
+     to produce a recommendation along with support/resistance levels, suggested prices,
+     highest hit price, and suggested trading dates.
   2. perform_lstm_analysis: A deep learning LSTM model that forecasts the next day's closing price
-     (using 10 years of historical data and 20 epochs for training) and makes a BUY/HOLD recommendation.
+     (using 10 years of historical data and 20 epochs for training) and makes a simple BUY/HOLD recommendation,
+     along with suggested trading dates.
+Additionally, a new function suggest_stock_to_buy is provided to analyze a list of stocks and suggest which one to buy.
+Both methods use nltk's VADER for sentiment analysis.
+Do NOT use this code for live trading without extensive testing and refinement.
 """
 
 import os
@@ -125,7 +130,6 @@ def get_news_sentiment(ticker_symbol):
             score = analyzer.polarity_scores(title)['compound']
             compound_scores.append(score)
     # Fetch additional headlines using NewsAPI.
-    # For security, ideally load the API key from environment variables.
     NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "09c29c4e025041a4b948e9197872400d")
     if NEWS_API_KEY:
         additional = get_additional_headlines(ticker_symbol, NEWS_API_KEY, page_size=20)
@@ -204,7 +208,8 @@ def perform_analysis(ticker_symbol):
     """
     A heuristic analysis method that uses technical indicators,
     fundamental data, and news sentiment to produce a recommendation.
-    Also calculates support/resistance levels, suggested buy/sell prices, and highest hit price.
+    Also calculates support/resistance levels, suggested buy/sell prices,
+    highest hit price, and suggested trading dates.
     """
     historical_data = get_historical_data(ticker_symbol)
     if historical_data.empty:
@@ -269,6 +274,11 @@ def perform_analysis(ticker_symbol):
     # Highest hit price from entire dataset
     highest_hit_price = data['High'].max()
     
+    # Suggested trading dates: for demonstration, buy date is next day; sell date is 3 days later.
+    last_date = data.index[-1]
+    suggested_buy_date = (last_date + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    suggested_sell_date = (last_date + pd.Timedelta(days=3)).strftime("%Y-%m-%d")
+    
     results = {
         "ticker": ticker_symbol,
         "live_price": live_price,
@@ -294,6 +304,8 @@ def perform_analysis(ticker_symbol):
         "resistance_level": resistance_level,
         "suggested_sell_price": suggested_sell_price,
         "highest_hit_price": highest_hit_price,
+        "suggested_buy_date": suggested_buy_date,
+        "suggested_sell_date": suggested_sell_date,
     }
     
     media_dir = get_media_dir()
@@ -313,7 +325,8 @@ def perform_lstm_analysis(ticker_symbol):
     Uses an LSTM model to forecast the next day's closing price.
     This version uses 10 years of historical data and trains for 20 epochs.
     Returns a dictionary with the current price, predicted next day price,
-    a BUY/HOLD recommendation, risk (volatility), and a test plot filename.
+    a BUY/HOLD recommendation, risk (volatility), a test plot filename,
+    and suggested trading dates.
     """
     # Download historical data for 10 years
     data = yf.download(ticker_symbol, period="10y")
@@ -332,12 +345,12 @@ def perform_lstm_analysis(ticker_symbol):
     X, y_data = np.array(X), np.array(y_data)
     X = np.reshape(X, (X.shape[0], X.shape[1], 1))
     
-    # Split data into training and testing sets (80% training)
+    # Split into training and testing sets (80% training)
     train_size = int(0.8 * len(X))
     X_train, y_train = X[:train_size], y_data[:train_size]
     X_test, y_test = X[train_size:], y_data[train_size:]
     
-    # Build LSTM model with 20 epochs
+    # Build LSTM model and train for 20 epochs
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(window_size, 1)))
     model.add(Dropout(0.2))
@@ -372,6 +385,11 @@ def perform_lstm_analysis(ticker_symbol):
     daily_std = data['Daily Return'].std()
     volatility = daily_std * np.sqrt(252) * 100
     
+    # Suggested trading dates: buy date is next day; sell date is 3 days later.
+    last_date = data.index[-1]
+    suggested_buy_date = (last_date + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    suggested_sell_date = (last_date + pd.Timedelta(days=3)).strftime("%Y-%m-%d")
+    
     media_dir = get_media_dir()
     plt.figure(figsize=(12,6))
     plt.plot(actual_prices, label="Actual Price", color="blue")
@@ -392,7 +410,61 @@ def perform_lstm_analysis(ticker_symbol):
         "predicted_next_day_price": next_day_pred,
         "recommendation": recommendation,
         "volatility": volatility,
+        "suggested_buy_date": suggested_buy_date,
+        "suggested_sell_date": suggested_sell_date,
         "lstm_test_plot": os.path.join("analysis", lstm_plot_filename),
     }
     
     return results, {"lstm_test_plot": lstm_plot_filename}
+
+# -----------------------------
+# Stock Suggestion Function
+# -----------------------------
+def suggest_stock_to_buy(ticker_list):
+    """
+    Given a list of ticker symbols, this function performs heuristic analysis
+    on each stock and returns the one with the highest overall score among those
+    that have a 'BUY' recommendation. If none have a 'BUY' recommendation, it returns
+    the stock with the highest overall score.
+    """
+    best_stock = None
+    best_score = -np.inf
+    best_results = None
+
+    for ticker in ticker_list:
+        try:
+            results, _ = perform_analysis(ticker)
+            if results is None:
+                continue
+            # Prioritize stocks with "BUY" recommendation
+            if results["recommendation"] == "BUY":
+                score = results["overall_score"]
+            else:
+                score = -np.inf  # ignore stocks not recommended as BUY
+            
+            if score > best_score:
+                best_score = score
+                best_stock = ticker
+                best_results = results
+        except Exception as e:
+            print(f"Error analyzing {ticker}: {e}")
+            continue
+
+    # If no stock has a BUY recommendation, try selecting the highest overall score regardless.
+    if best_stock is None:
+        for ticker in ticker_list:
+            try:
+                results, _ = perform_analysis(ticker)
+                if results is None:
+                    continue
+                score = results["overall_score"]
+                if score > best_score:
+                    best_score = score
+                    best_stock = ticker
+                    best_results = results
+            except Exception as e:
+                print(f"Error analyzing {ticker}: {e}")
+                continue
+
+    return best_results
+
